@@ -38,21 +38,21 @@ export async function POST(req: NextRequest) {
 
     // Check for seat assignment if seat_number is provided
     if (result.data.seat_number && result.data.route_id) {
-        // We'll handle seat assignment logic in the specialized endpoint mostly,
-        // but for direct creation, we must ensure it's not taken.
-        const { data: existing } = await supabase
-            .from("students")
-            .select("id")
-            .eq("route_id", result.data.route_id)
-            .eq("seat_number", result.data.seat_number)
-            .single();
-        
-        if (existing) {
-             return NextResponse.json(
-                { error: "Seat is already occupied." },
-                { status: 409 }
-            );
-        }
+      // We'll handle seat assignment logic in the specialized endpoint mostly,
+      // but for direct creation, we must ensure it's not taken.
+      const { data: existing } = await supabase
+        .from("students")
+        .select("id")
+        .eq("bus_id", result.data.bus_id)
+        .eq("seat_number", result.data.seat_number)
+        .single();
+
+      if (existing) {
+        return NextResponse.json(
+          { error: "Seat is already occupied." },
+          { status: 409 }
+        );
+      }
     }
 
     const { data, error } = await supabase

@@ -8,7 +8,9 @@ export async function POST(request: NextRequest) {
   const validation = userSchema.safeParse(body);
 
   if (!validation.success)
-    return NextResponse.json(validation.error.errors, { status: 400 });
+    return NextResponse.json(validation.error.flatten().fieldErrors, {
+      status: 400,
+    });
 
   // check if user already exists using the RPC function
   const { data: existingUser, error: existingError } = await supabase.rpc(

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
 import SignOutButton from "@/app/(auth)/signout/SignOutButton";
 
 export function Navbar() {

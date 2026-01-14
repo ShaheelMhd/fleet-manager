@@ -28,15 +28,19 @@ type StudentFormValues = z.infer<typeof studentSchema>;
 export function StudentForm({ onSuccess }: StudentFormProps) {
   const router = useRouter();
   const [routes, setRoutes] = useState<Route[]>([]);
-  
+
   useEffect(() => {
     fetch("/api/routes")
       .then((res) => res.json())
-      .then((data) => setRoutes(data))
+      .then((data) => {
+        if (Array.isArray(data)) setRoutes(data);
+        else setRoutes([]);
+      })
       .catch((err) => console.error(err));
   }, []);
 
   const form = useForm<StudentFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(studentSchema) as any,
     defaultValues: {
       name: "",
@@ -47,10 +51,10 @@ export function StudentForm({ onSuccess }: StudentFormProps) {
 
   async function onSubmit(values: StudentFormValues) {
     try {
-        const payload = {
-            ...values,
-            route_id: values.route_id === "" ? null : values.route_id
-        };
+      const payload = {
+        ...values,
+        route_id: values.route_id === "" ? null : values.route_id
+      };
 
       const response = await fetch("/api/students", {
         method: "POST",

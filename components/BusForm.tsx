@@ -17,6 +17,9 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
+import { useEffect, useState } from "react";
+import { Route } from "@/types";
+
 interface BusFormProps {
   onSuccess?: () => void;
 }
@@ -25,21 +28,40 @@ type BusFormValues = z.infer<typeof busSchema>;
 
 export function BusForm({ onSuccess }: BusFormProps) {
   const router = useRouter();
+  const [routes, setRoutes] = useState<Route[]>([]);
+
+  useEffect(() => {
+    fetch("/api/routes")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setRoutes(data);
+        else setRoutes([]);
+      })
+      .catch(err => console.error(err));
+  }, []);
+
   const form = useForm<BusFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(busSchema) as any,
     defaultValues: {
       number: "",
       capacity: 40,
       status: "active",
+      route_id: null,
     },
   });
 
   async function onSubmit(values: BusFormValues) {
     try {
+      const payload = {
+        ...values,
+        route_id: values.route_id === "unassigned" || values.route_id === "" ? null : values.route_id
+      };
+
       const response = await fetch("/api/buses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -72,6 +94,31 @@ export function BusForm({ onSuccess }: BusFormProps) {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="route_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Assigned Route</FormLabel>
+              <FormControl>
+                <select
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  {...field}
+                  value={field.value || "unassigned"}
+                  onChange={(e) => field.onChange(e.target.value)}
+                >
+                  <option value="unassigned">Unassigned</option>
+                  {routes.map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="capacity"
@@ -79,7 +126,7 @@ export function BusForm({ onSuccess }: BusFormProps) {
             <FormItem>
               <FormLabel>Capacity</FormLabel>
               <FormControl>
-                <Input type="number" {...field} />
+                <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -98,6 +145,7 @@ export function BusForm({ onSuccess }: BusFormProps) {
                 >
                   <option value="active">Active</option>
                   <option value="maintenance">Maintenance</option>
+                  <option value="idle">Idle</option>
                 </select>
               </FormControl>
               <FormMessage />

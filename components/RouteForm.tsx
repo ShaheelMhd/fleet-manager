@@ -16,8 +16,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Bus } from "@/types";
 
 interface RouteFormProps {
   onSuccess?: () => void;
@@ -27,36 +25,22 @@ type RouteFormValues = z.infer<typeof routeSchema>;
 
 export function RouteForm({ onSuccess }: RouteFormProps) {
   const router = useRouter();
-  const [buses, setBuses] = useState<Bus[]>([]);
-  
-  useEffect(() => {
-    fetch("/api/buses")
-      .then((res) => res.json())
-      .then((data) => setBuses(data))
-      .catch((err) => console.error(err));
-  }, []);
 
   const form = useForm<RouteFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(routeSchema) as any,
     defaultValues: {
       name: "",
       stops: [],
-      bus_id: "",
     },
   });
 
   async function onSubmit(values: RouteFormValues) {
     try {
-      // If bus_id is empty string, make it null
-      const payload = {
-          ...values,
-          bus_id: values.bus_id === "" ? null : values.bus_id
-      };
-      
       const response = await fetch("/api/routes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(values),
       });
 
       if (!response.ok) {
@@ -84,31 +68,6 @@ export function RouteForm({ onSuccess }: RouteFormProps) {
               <FormLabel>Route Name</FormLabel>
               <FormControl>
                 <Input placeholder="Route A" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="bus_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Assigned Bus</FormLabel>
-              <FormControl>
-                <select
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  {...field}
-                  value={field.value || ""}
-                >
-                  <option value="">Select a bus</option>
-                  {buses.map((bus) => (
-                    <option key={bus.id} value={bus.id}>
-                      {bus.number} ({bus.capacity} seats)
-                    </option>
-                  ))}
-                </select>
               </FormControl>
               <FormMessage />
             </FormItem>
