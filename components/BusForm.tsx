@@ -152,6 +152,27 @@ export function BusForm({ onSuccess }: BusFormProps) {
             </FormItem>
           )}
         />
+
+        {(form.watch("status") === "maintenance" ||
+          form.watch("status") === "idle") && (
+            <FormField
+              control={form.control}
+              name="maintenance_notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {form.watch("status") === "maintenance"
+                      ? "Maintenance Issue"
+                      : "Idle Reason"}
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Description..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         <Button type="submit">Create Bus</Button>
       </form>
     </Form>

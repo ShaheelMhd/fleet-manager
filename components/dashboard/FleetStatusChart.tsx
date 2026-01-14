@@ -3,14 +3,45 @@
 import { Bar, BarChart, ResponsiveContainer, Tooltip, Cell, XAxis, YAxis } from "recharts";
 import { Bus } from "lucide-react";
 import { ShinyCard } from "@/components/ui/ShinyCard";
-
-const data = [
-    { name: "Active", value: 24, color: "#9d4edd" }, // Amethyst (Sidebar Primary)
-    { name: "Maintenance", value: 4, color: "#27272a" }, // Dark Gray (Border/Accent)
-    { name: "Idle", value: 2, color: "#52525b" }, // Gray (Zinc-600)
-];
+import { useEffect, useState } from "react";
 
 export function FleetStatusChart() {
+    const [data, setData] = useState([
+        { name: "Active", value: 0, color: "#9d4edd" },
+        { name: "Maintenance", value: 0, color: "#27272a" },
+        { name: "Idle", value: 0, color: "#52525b" },
+    ]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch("/api/buses")
+            .then(res => res.json())
+            .then((buses: any[]) => {
+                const active = buses.filter(b => b.status === "active").length;
+                const maintenance = buses.filter(b => b.status === "maintenance").length;
+                const idle = buses.filter(b => b.status === "idle").length;
+
+                setData([
+                    { name: "Active", value: active, color: "#9d4edd" },
+                    { name: "Maintenance", value: maintenance, color: "#27272a" },
+                    { name: "Idle", value: idle, color: "#52525b" },
+                ]);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error("Failed to fetch fleet status", err);
+                setLoading(false);
+            });
+    }, []);
+
+    if (loading) {
+        return (
+            <ShinyCard className="p-6 h-full flex items-center justify-center">
+                <p className="text-muted-foreground text-xs animate-pulse">Loading fleet data...</p>
+            </ShinyCard>
+        );
+    }
+
     return (
         <ShinyCard className="p-6 h-full">
             <div className="flex flex-col h-full justify-between">

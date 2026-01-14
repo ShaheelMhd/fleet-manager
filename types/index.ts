@@ -4,6 +4,7 @@ export interface Bus {
   capacity: number;
   status: 'active' | 'maintenance' | 'idle';
   route_id: string | null;
+  maintenance_notes?: string;
   created_at: string;
   route?: Route;
 }

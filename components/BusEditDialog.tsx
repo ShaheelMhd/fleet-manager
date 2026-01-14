@@ -66,6 +66,7 @@ export function BusEditDialog({ bus, onSuccess }: BusEditFormProps) {
             capacity: bus.capacity,
             status: bus.status as "active" | "maintenance" | "idle",
             route_id: bus.route_id,
+            maintenance_notes: bus.maintenance_notes,
         },
     });
 
@@ -180,6 +181,24 @@ export function BusEditDialog({ bus, onSuccess }: BusEditFormProps) {
                                 </FormItem>
                             )}
                         />
+
+                        {(form.watch("status") === "maintenance" || form.watch("status") === "idle") && (
+                            <FormField
+                                control={form.control}
+                                name="maintenance_notes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>
+                                            {form.watch("status") === "maintenance" ? "Maintenance Issue" : "Idle Reason"}
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Description..." {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
                         <div className="flex gap-2">
                             <Button type="submit" className="flex-1 bg-sidebar-primary hover:bg-sidebar-primary/90">Update Bus</Button>
                             <Button type="button" variant="destructive" size="icon" onClick={async () => {

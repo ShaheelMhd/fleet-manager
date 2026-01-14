@@ -5,6 +5,7 @@ export const busSchema = z.object({
   capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
   status: z.enum(["active", "maintenance", "idle"]).default("active"),
   route_id: z.string().optional().nullable(),
+  maintenance_notes: z.string().optional(),
 });
 
 export const routeSchema = z.object({
