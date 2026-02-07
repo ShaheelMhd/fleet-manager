@@ -1,9 +1,8 @@
 "use client";
 
-import { Bar, BarChart, ResponsiveContainer, Tooltip, Cell, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, Cell, XAxis } from "recharts";
 import { Bus } from "lucide-react";
 import { ShinyCard } from "@/components/ui/ShinyCard";
-import { useEffect, useState } from "react";
 
 export function FleetStatusChart({ data: fleetStatus }: { data: any }) {
     const data = [

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowUpRight, Bus, MapPin, Users, Armchair } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Bus, Users, Armchair } from "lucide-react";
 import { ShinyCard } from "@/components/ui/ShinyCard";
 
 export function AlertCard({ maintenanceCount }: { maintenanceCount: number }) {

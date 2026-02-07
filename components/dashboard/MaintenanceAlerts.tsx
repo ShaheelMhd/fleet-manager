@@ -2,8 +2,6 @@
 
 import { AlertTriangle, Wrench, Clock } from "lucide-react";
 import { ShinyCard } from "@/components/ui/ShinyCard";
-import { useEffect, useState } from "react";
-import { Bus } from "@/types";
 import { Button } from "../ui/button";
 
 export function MaintenanceAlerts({ alerts }: { alerts: any[] }) {
