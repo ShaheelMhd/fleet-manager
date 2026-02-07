@@ -7,10 +7,11 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const validation = userSchema.safeParse(body);
 
-  if (!validation.success)
+  if (!validation.success) {
     return NextResponse.json(validation.error.flatten().fieldErrors, {
       status: 400,
     });
+  }
 
   // check if user already exists using the RPC function
   const { data: existingUser, error: existingError } = await supabase.rpc(
@@ -19,19 +20,45 @@ export async function POST(request: NextRequest) {
   );
 
   if (existingError) {
-    return NextResponse.json({ error: existingError.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unexpected error occurred while checking for existing users." },
+      { status: 500 }
+    );
   }
 
-  if (existingUser && existingUser.length > 0)
+  if (existingUser && existingUser.length > 0) {
     return NextResponse.json(
-      { error: "User with this email already exists!" },
+      { error: "An account with this email already exists." },
       { status: 400 }
     );
+  }
 
   const hashedPassword = await bcrypt.hash(body.password, 10);
 
-  // insert new user using the RPC function
-  const { data: newUser, error: insertError } = await supabase.rpc(
+  // Sign up using Supabase Auth
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    email: body.email,
+    password: body.password,
+    options: {
+      data: {
+        name: body.name,
+      },
+    },
+  });
+
+  if (signUpError) {
+    let errorMessage = "Failed to create account. Please try again.";
+    if (signUpError.status === 429) {
+      errorMessage = "Too many requests. Please try again later.";
+    } else if (signUpError.message.includes("already registered")) {
+      errorMessage = "This email is already registered.";
+    }
+    return NextResponse.json({ error: errorMessage }, { status: signUpError.status || 500 });
+  }
+
+  // Insert into our custom users table for NextAuth/SupabaseAdapter compatibility if needed
+  // or handle metadata. Here we use the existing insert_next_auth_user RPC
+  const { error: insertError } = await supabase.rpc(
     "insert_next_auth_user",
     {
       name: body.name,
@@ -42,16 +69,13 @@ export async function POST(request: NextRequest) {
 
   if (insertError) {
     console.error("Insert error: ", insertError);
-    return NextResponse.json({ error: insertError.message }, { status: 500 });
+    // Even if this fails, the user is created in auth.users
   }
-
-  // newUser is an array, so return the first user
-  const createdUser = Array.isArray(newUser) ? newUser[0] : newUser;
 
   return NextResponse.json(
     {
-      message: "User created successfully",
-      user: { id: createdUser.id, email: createdUser.email },
+      message: "A confirmation email has been sent. Please check your inbox and confirm your email to log in.",
+      user: { id: signUpData.user?.id, email: signUpData.user?.email },
     },
     { status: 200 }
   );

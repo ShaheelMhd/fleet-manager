@@ -1,6 +1,5 @@
 import { supabase } from "@/utils/supabaseClient";
 import { SupabaseAdapter } from "@next-auth/supabase-adapter";
-import bcrypt from "bcrypt";
 import { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
@@ -19,21 +18,34 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const { data: users, error } = await supabase.rpc(
+        // Sign in with Supabase Auth
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: credentials.email,
+          password: credentials.password,
+        });
+
+        if (error || !data.user) {
+          console.error("Supabase auth error:", error?.message);
+          return null;
+        }
+
+        if (!data.user.email_confirmed_at) {
+          throw new Error("Please confirm your email before logging in.");
+        }
+
+        // Optionally still fetch from custom table if needed for additional metadata
+        const { data: users } = await supabase.rpc(
           "get_next_auth_user_by_email",
           { email: credentials.email }
         );
 
-        if (error || !users || users.length === 0) return null;
+        const customUser = users && users.length > 0 ? users[0] : null;
 
-        const user = users[0];
-
-        const passwordsMatch = await bcrypt.compare(
-          credentials.password,
-          user.password!
-        );
-
-        return passwordsMatch ? user : null;
+        return {
+          id: data.user.id,
+          email: data.user.email,
+          name: customUser?.name || data.user.user_metadata?.name,
+        };
       },
     }),
   ],
@@ -53,8 +65,10 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    async redirect({ baseUrl }) {
-      return baseUrl;
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl
     },
   },
 };

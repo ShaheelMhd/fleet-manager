@@ -10,24 +10,24 @@ export function Navbar() {
 
   const routes = [
     {
-      href: "/",
+      href: "/dashboard",
       label: "Dashboard",
-      active: pathname === "/",
+      active: pathname === "/dashboard",
     },
     {
-      href: "/routes",
+      href: "/dashboard/routes",
       label: "Routes",
-      active: pathname === "/routes",
+      active: pathname === "/dashboard/routes",
     },
     {
-      href: "/students",
+      href: "/dashboard/students",
       label: "Students",
-      active: pathname === "/students",
+      active: pathname === "/dashboard/students",
     },
     {
-        href: "/buses",
+        href: "/dashboard/buses",
         label: "Buses",
-        active: pathname === "/buses"
+        active: pathname === "/dashboard/buses"
     }
   ];
 

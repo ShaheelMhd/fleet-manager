@@ -1,6 +1,5 @@
 "use client";
 
-import { userSchema } from "@/app/api/schema";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,69 +11,88 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { userSchema } from "../../api/schema";
 
-async function onSubmit(
-  data: z.infer<typeof userSchema>,
-  form: UseFormReturn<z.infer<typeof userSchema>>
-) {
-  try {
-    const response = await fetch("/api/users/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        confirmPassword: data.confirmPassword,
-      }),
-    });
-
-    if (!response.ok) throw new Error("Failed to register user");
-
-    toast.success("User successfully registered!", {
-      action: {
-        label: "Login",
-        onClick: () => (window.location.href = "/signin"),
-      },
-    });
-
-    form.reset();
-  } catch (error) {
-    console.error(error);
-    toast.error("Failed to register user!");
-  }
-}
+type RegisterValues = z.infer<typeof userSchema>;
 
 const RegisterForm = () => {
-  const form = useForm<z.infer<typeof userSchema>>({
+  const [loading, setLoading] = useState(false);
+
+  const form = useForm<RegisterValues>({
     resolver: zodResolver(userSchema),
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
+  async function onSubmit(values: RegisterValues) {
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/users/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        // Handle field-specific validation errors from server
+        Object.keys(data).forEach((key) => {
+          form.setError(key as any, {
+            type: "manual",
+            message: data[key],
+          });
+        });
+        throw new Error("Please correct the errors below.");
+      }
+
+      toast.success(data.message || "User successfully registered!", {
+        duration: 10000,
+      });
+
+      setTimeout(() => {
+        window.location.href = "/signin";
+      }, 3000);
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Failed to register user!");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col items-center">
       <Form {...form}>
         <form
-          className="flex flex-col gap-3"
-          onSubmit={form.handleSubmit((data) => onSubmit(data, form))}
+          className="flex flex-col gap-4 w-full max-w-sm"
+          onSubmit={form.handleSubmit(onSubmit)}
         >
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel className="text-white">Name</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
-                    type="text"
                     placeholder="Enter your name"
-                    className="h-12"
+                    className="h-12 bg-white/5 border-white/10 text-white"
                   />
                 </FormControl>
                 <FormMessage />
@@ -86,13 +104,13 @@ const RegisterForm = () => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="text-white">Email</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     type="email"
                     placeholder="Enter your email"
-                    className="h-12"
+                    className="h-12 bg-white/5 border-white/10 text-white"
                   />
                 </FormControl>
                 <FormMessage />
@@ -104,13 +122,13 @@ const RegisterForm = () => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="text-white">Password</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     type="password"
                     placeholder="Enter your password"
-                    className="h-12"
+                    className="h-12 bg-white/5 border-white/10 text-white"
                   />
                 </FormControl>
                 <FormMessage />
@@ -122,13 +140,13 @@ const RegisterForm = () => {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel className="text-white">Confirm Password</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     type="password"
                     placeholder="Enter your password again"
-                    className="h-12"
+                    className="h-12 bg-white/5 border-white/10 text-white"
                   />
                 </FormControl>
                 <FormMessage />
@@ -137,10 +155,10 @@ const RegisterForm = () => {
           />
           <Button
             type="submit"
-            className="h-12 mt-2 text-md w-full"
-            disabled={form.formState.isSubmitting}
+            className="h-12 mt-2 text-md w-full bg-white text-black hover:bg-white/90"
+            disabled={loading}
           >
-            {form.formState.isSubmitting ? "Registering..." : "Register"}
+            {loading ? "Registering..." : "Register"}
           </Button>
         </form>
       </Form>

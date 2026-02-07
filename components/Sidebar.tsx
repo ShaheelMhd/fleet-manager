@@ -8,16 +8,17 @@ import {
     MapPin,
     Users,
     Settings,
-    Plus
+    LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { signOut } from "next-auth/react";
 
 const sidebarItems = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/" },
-    { icon: Bus, label: "Fleet", href: "/buses" },
-    { icon: MapPin, label: "Routes", href: "/routes" },
-    { icon: Users, label: "Students", href: "/students" },
+    { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+    { icon: Bus, label: "Fleet", href: "/dashboard/buses" },
+    { icon: MapPin, label: "Routes", href: "/dashboard/routes" },
+    { icon: Users, label: "Students", href: "/dashboard/students" },
     { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
@@ -56,8 +57,12 @@ export function Sidebar() {
             </nav>
 
             <div className="mt-auto flex flex-col gap-4 items-center w-full px-2">
-                <button className="flex items-center justify-center h-10 w-10 rounded-full bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors">
-                    <Plus className="w-5 h-5" />
+                <button
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="flex items-center justify-center h-10 w-10 rounded-xl bg-sidebar-accent text-sidebar-foreground hover:bg-red-500/10 hover:text-red-500 transition-colors group relative"
+                    title="Logout"
+                >
+                    <LogOut className="w-5 h-5" />
                 </button>
 
                 <div className="h-10 w-10 rounded-full border-2 border-sidebar-border overflow-hidden p-0.5">

@@ -1,26 +1,22 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
-import RegisterForm from "./RegisterForm";
+import ResetPasswordForm from "./ResetPasswordForm";
 
-const RegisterPage = () => {
+const ResetPasswordPage = () => {
   return (
     <Card className="w-full bg-black/40 backdrop-blur-md border-white/10">
       <CardHeader>
-        <CardTitle className="text-2xl font-light text-white text-center">Register</CardTitle>
+        <CardTitle className="text-2xl font-light text-white text-center">Update Password</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-5 w-full">
-        <RegisterForm />
         <p className="text-sm text-white/60 text-center">
-          Already have an account?{" "}
-          <Link className="text-white hover:underline" href="/signin">
-            Login here.
-          </Link>
+            Please enter your new password below.
         </p>
+        <ResetPasswordForm />
       </CardContent>
     </Card>
   );
 };
 
-export default RegisterPage;
+export default ResetPasswordPage;

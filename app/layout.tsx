@@ -32,15 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground overflow-hidden`}
       >
         <AuthProvider>
-          <div className="flex h-screen w-full overflow-hidden bg-background">
-            <Sidebar />
-            <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-              <Header />
-              <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 pt-2">
-                {children}
-              </main>
-            </div>
-          </div>
+          {children}
         </AuthProvider>
         <Toaster className="mr-2" duration={2000} />
       </body>

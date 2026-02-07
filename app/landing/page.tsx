@@ -8,8 +8,8 @@ import LandingHeroContent from "@/components/landing/LandingHeroContent"
 import LandingPulsingCircle from "@/components/landing/LandingPulsingCircle"
 import ShaderBackground from "@/components/landing/ShaderBackground"
 
-export default function RootPage() {
-  const { status } = useSession()
+export default function LandingPage() {
+  const { data: session, status } = useSession()
   const router = useRouter()
 
   useEffect(() => {

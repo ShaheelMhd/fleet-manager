@@ -13,7 +13,6 @@ export interface Route {
   id: string;
   name: string;
   stops: string[];
-  // bus_id dropped in favor of one-route-to-many-buses
   created_at: string;
   buses?: Bus[];
 }
@@ -26,5 +25,17 @@ export interface Student {
   bus_id?: string | null;
   seat_number: number | null;
   created_at: string;
-  route?: Route; // For joined queries
+  route?: Route;
+}
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number | null;
+  totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: Pagination;
 }

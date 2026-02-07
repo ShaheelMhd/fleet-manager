@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/utils/supabaseClient";
 import { z } from "zod";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/authOptions";
+import { logger } from "@/lib/logger";
+import { Route, Bus } from "@/types";
 
 const assignSeatSchema = z.object({
   studentId: z.string().min(1),
@@ -10,6 +14,11 @@ const assignSeatSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
     const result = assignSeatSchema.safeParse(body);
@@ -24,7 +33,6 @@ export async function POST(req: NextRequest) {
     const { studentId, routeId, busId, seatNumber } = result.data;
 
     // 1. Get Route and Buses info
-    // Note: Since we changed relation to One-Route-Many-Buses, we fetch buses
     const { data: route, error: routeError } = await supabase
       .from("routes")
       .select("*, buses(*)")
@@ -32,12 +40,14 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (routeError || !route) {
+      logger.error("Route not found for seat assignment", routeError, { routeId });
       return NextResponse.json({ error: "Route not found" }, { status: 404 });
     }
 
+    const typedRoute = route as Route & { buses: Bus[] };
+
     // Find the specific bus
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const targetBus = (route as any).buses?.find((b: any) => b.id === busId);
+    const targetBus = typedRoute.buses?.find((b: Bus) => b.id === busId);
 
     if (!targetBus) {
       return NextResponse.json(
@@ -59,7 +69,7 @@ export async function POST(req: NextRequest) {
       .select("id")
       .eq("bus_id", busId)
       .eq("seat_number", seatNumber)
-      .neq("id", studentId) // Ignore self if just updating
+      .neq("id", studentId)
       .single();
 
     if (existingStudent) {
@@ -78,12 +88,14 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (updateError) {
+      logger.error("Failed to update student seat", updateError, { studentId, busId, seatNumber });
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
+    logger.info("Seat assigned successfully", { studentId, busId, seatNumber });
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error assigning seat:", error);
+    logger.error("Error assigning seat", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

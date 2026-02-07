@@ -30,14 +30,15 @@ export function ActiveRoutes() {
 
     // Filter to show only a few active routes? Or all?
     // Let's show top 4 for the widget.
-    const displayRoutes = routes.slice(0, 4);
+    const routesArray = Array.isArray(routes) ? routes : [];
+    const displayRoutes = routesArray.slice(0, 4);
 
     return (
         <ShinyCard className="h-full flex flex-col p-6">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold tracking-wide">ACTIVE ROUTES</h3>
                 <span className="bg-secondary px-3 py-1 rounded-full text-xs font-medium text-muted-foreground">
-                    {routes.length} Total
+                    {routesArray.length} Total
                 </span>
             </div>
 

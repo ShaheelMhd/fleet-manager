@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import {
   Form,
   FormControl,
@@ -12,42 +11,48 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { loginSchema } from "../../api/schema";
+import { resetPasswordSchema } from "@/app/api/schema";
+import { supabase } from "@/utils/supabaseClient";
+import { useRouter } from "next/navigation";
 
-type LoginValues = z.infer<typeof loginSchema>;
+type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
-const SignInForm = () => {
+const ResetPasswordForm = () => {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const form = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<ResetPasswordValues>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
-  async function onSubmit(values: LoginValues) {
+  async function onSubmit(values: ResetPasswordValues) {
     setLoading(true);
 
-    const result = await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      callbackUrl: "/dashboard",
-      redirect: false,
-    });
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: values.password,
+      });
 
-    if (result?.error) {
-      toast.error("Invalid email or password. Please try again.");
+      if (error) throw error;
+
+      toast.success("Password updated successfully!");
+      
+      setTimeout(() => {
+        router.push("/signin");
+      }, 2000);
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Failed to update password!");
+    } finally {
       setLoading(false);
-    } else {
-      toast.success("Signed in successfully!");
-      window.location.href = "/dashboard";
     }
   }
 
@@ -60,15 +65,15 @@ const SignInForm = () => {
         >
           <FormField
             control={form.control}
-            name="email"
+            name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-white">Email</FormLabel>
+                <FormLabel className="text-white">New Password</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
-                    type="email"
-                    placeholder="Enter your email"
+                    type="password"
+                    placeholder="Enter new password"
                     className="h-12 bg-white/5 border-white/10 text-white"
                   />
                 </FormControl>
@@ -78,23 +83,15 @@ const SignInForm = () => {
           />
           <FormField
             control={form.control}
-            name="password"
+            name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel className="text-white">Password</FormLabel>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-white/60 hover:text-white hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                <FormLabel className="text-white">Confirm New Password</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="Confirm new password"
                     className="h-12 bg-white/5 border-white/10 text-white"
                   />
                 </FormControl>
@@ -107,7 +104,7 @@ const SignInForm = () => {
             className="mt-2 p-6 text-md w-full bg-white text-black hover:bg-white/90"
             disabled={loading}
           >
-            {loading ? "Signing In..." : "Sign In"}
+            {loading ? "Updating..." : "Update Password"}
           </Button>
         </form>
       </Form>
@@ -115,4 +112,4 @@ const SignInForm = () => {
   );
 };
 
-export default SignInForm;
+export default ResetPasswordForm;
