@@ -15,6 +15,7 @@ interface StudentAssignmentProps {
 export function StudentAssignment({ student, onUpdate, onCancel }: StudentAssignmentProps) {
   const [route, setRoute] = useState<Route | null>(null);
   const [occupiedSeats, setOccupiedSeats] = useState<number[]>([]);
+  const [occupiedSeatsMap, setOccupiedSeatsMap] = useState<Record<number, string>>({});
   const [selectedSeat, setSelectedSeat] = useState<number | null>(student.seat_number);
   const [selectedBusId, setSelectedBusId] = useState<string | null>(student.bus_id || null);
   const [loading, setLoading] = useState(false);
@@ -43,23 +44,19 @@ export function StudentAssignment({ student, onUpdate, onCancel }: StudentAssign
       fetch(`/api/students?routeId=${student.route_id}`)
         .then(res => res.json())
         .then((data: Student[]) => {
-          // We store ALL students, but we filter occupied seats based on selectedBusId later
-          // Better: store them and filter dynamically?
-          // Let's store raw data or filter logic here?
-          // Actually, simplified: just re-fetch or filter when selectedBusId changes.
-          // But 'data' is local here. Let's filter seats for the CURRENT bus if we can.
-          // Problem: data inside useEffect.
-          // Solution: We'll just fetch once, and since we need to filter by bus, maybe we should've fetched by bus?
-          // Assuming endpoint returns all students on route, we filter by busId:
-
-
-          // This is complex. Let's just persist the student list and filter in render or dedicated effect?
-          // For simplicity:
-          const seats = data
-            .filter(s => s.bus_id === (selectedBusId ?? student.bus_id)) // logic: match selected
+          const busId = selectedBusId ?? student.bus_id;
+          const filteredStudents = data.filter(s => s.bus_id === busId);
+          
+          const seats = filteredStudents
             .map(s => s.seat_number)
             .filter((s): s is number => s !== null);
           setOccupiedSeats(seats);
+
+          const seatMap: Record<number, string> = {};
+          filteredStudents.forEach(s => {
+            if (s.seat_number) seatMap[s.seat_number] = s.name;
+          });
+          setOccupiedSeatsMap(seatMap);
         });
     }
   }, [student.route_id, selectedBusId, student.bus_id]); // Re-run when bus changes
@@ -148,6 +145,7 @@ export function StudentAssignment({ student, onUpdate, onCancel }: StudentAssign
           <SeatMap
             totalSeats={currentBus.capacity}
             occupiedSeats={occupiedSeats.filter(s => s !== student.seat_number)}
+            occupiedSeatsMap={occupiedSeatsMap}
             selectedSeat={selectedSeat}
             onSeatSelect={id => {
               // Ensure bus is selected

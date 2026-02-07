@@ -2,10 +2,35 @@
 
 import { FleetStatusChart } from "@/components/dashboard/FleetStatusChart";
 import { ActiveRoutes } from "@/components/dashboard/ActiveRoutes";
-import { AlertCard, MapCard, OperationsCard } from "@/components/dashboard/StatsCards";
+import { AlertCard, FleetCapacityCard, RouteInsightsCard, FleetSummaryCard } from "@/components/dashboard/StatsCards";
 import { MaintenanceAlerts } from "@/components/dashboard/MaintenanceAlerts";
+import { useEffect, useState } from "react";
 
 export default function Dashboard() {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/dashboard/stats")
+      .then((res) => res.json())
+      .then((data) => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch dashboard stats", err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 h-full pb-6">
       {/* Top Section: Fleet Status + Alerts + Active Routes */}
@@ -13,34 +38,39 @@ export default function Dashboard() {
 
         {/* Fleet Chart - Main Focus */}
         <div className="xl:col-span-6 min-h-[400px]">
-          <FleetStatusChart />
+          <FleetStatusChart data={stats?.fleetStatus} />
         </div>
 
         {/* Right Column - Alerts & Active Routes */}
         <div className="xl:col-span-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
           <div className="md:col-span-2">
-            <AlertCard />
+            <AlertCard maintenanceCount={stats?.fleetStatus?.maintenance || 0} />
           </div>
           <div className="min-h-[300px]">
             <ActiveRoutes />
           </div>
           <div className="min-h-[300px]">
-            <MaintenanceAlerts />
+            <MaintenanceAlerts alerts={stats?.maintenanceAlerts || []} />
           </div>
         </div>
       </div>
 
-      {/* Bottom Section: Map & Operations */}
+      {/* Middle Section: Capacity & Insights */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1 min-h-[250px]">
-          <MapCard />
+          <FleetCapacityCard 
+            occupancyRate={stats?.occupancyRate || 0} 
+            totalOccupied={stats?.totalOccupied || 0} 
+            totalCapacity={stats?.totalCapacity || 0} 
+          />
         </div>
         <div className="lg:col-span-1 min-h-[250px]">
-          <OperationsCard />
+          <RouteInsightsCard insights={stats?.routeInsights || []} />
         </div>
-        {/* Placeholder for future expansion or another widget */}
-        <div className="lg:col-span-2 min-h-[250px] bg-card/50 rounded-3xl border border-dashed border-border/50 flex items-center justify-center text-muted-foreground text-sm">
-          <span>More metrics coming soon...</span>
+        
+        {/* Fleet Summary Summary */}
+        <div className="lg:col-span-2 min-h-[250px]">
+          <FleetSummaryCard stats={stats} />
         </div>
       </div>
     </div>

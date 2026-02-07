@@ -4,6 +4,7 @@ create table if not exists buses (
   number text not null unique,
   capacity int not null,
   status text check (status in ('active', 'maintenance', 'idle')) default 'active',
+  maintenance_notes text,
   route_id uuid references routes(id) on delete set null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -25,8 +26,6 @@ create table if not exists students (
   bus_id uuid references buses(id) on delete set null,
   seat_number int,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  constraint unique_seat_per_route unique (route_id, seat_number) -- Note: constraint might need update to be per-bus?
-  -- ideally unique (bus_id, seat_number) if assignment is strictly per bus.
-  -- But if we keep route_id, we might want unique (bus_id, seat_number) where bus_id is not null.
+  constraint unique_bus_seat unique (bus_id, seat_number)
 );
 

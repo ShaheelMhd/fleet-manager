@@ -6,6 +6,7 @@ import React from "react";
 interface SeatMapProps {
   totalSeats: number;
   occupiedSeats: number[];
+  occupiedSeatsMap?: Record<number, string>;
   selectedSeat?: number | null;
   onSeatSelect?: (seatNumber: number) => void;
   readOnly?: boolean;
@@ -14,6 +15,7 @@ interface SeatMapProps {
 export function SeatMap({
   totalSeats,
   occupiedSeats,
+  occupiedSeatsMap = {},
   selectedSeat,
   onSeatSelect,
   readOnly = false,
@@ -59,7 +61,7 @@ export function SeatMap({
                         ? "bg-sidebar-primary border-sidebar-ring text-primary-foreground z-10 scale-110 shadow-[0_0_15px_rgba(157,78,221,0.5)]"
                         : "bg-secondary border-border hover:border-sidebar-primary/50 text-foreground hover:bg-secondary/80"
                   )}
-                  title={isOccupied ? `Seat ${seatNumber} (Occupied)` : `Seat ${seatNumber}`}
+                  title={isOccupied ? `Seat ${seatNumber} - ${occupiedSeatsMap[seatNumber] || "Occupied"}` : `Seat ${seatNumber}`}
                 >
                   {/* Seat Back Detail */}
                   <div className={cn(

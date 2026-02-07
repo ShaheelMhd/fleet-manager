@@ -6,34 +6,7 @@ import { useEffect, useState } from "react";
 import { Bus } from "@/types";
 import { Button } from "../ui/button";
 
-export function MaintenanceAlerts() {
-    const [alerts, setAlerts] = useState<Bus[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetch("/api/buses")
-            .then((res) => res.json())
-            .then((data: Bus[]) => {
-                // Filter for maintenance or idle
-                const issues = data.filter(
-                    (bus) => bus.status === "maintenance" || bus.status === "idle"
-                );
-                setAlerts(issues);
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error("Failed to fetch buses", err);
-                setLoading(false);
-            });
-    }, []);
-
-    if (loading) {
-        return (
-            <ShinyCard className="p-6 h-full flex flex-col justify-center items-center">
-                <div className="text-muted-foreground text-sm">Loading alerts...</div>
-            </ShinyCard>
-        );
-    }
+export function MaintenanceAlerts({ alerts }: { alerts: any[] }) {
 
     return (
         <ShinyCard className="p-6 h-full flex flex-col">
@@ -79,10 +52,7 @@ export function MaintenanceAlerts() {
                                     </span>
                                 </div>
                                 <p className="text-xs text-muted-foreground truncate">
-                                    {bus.maintenance_notes ||
-                                        (bus.status === "maintenance"
-                                            ? "Check required"
-                                            : "Bus is idle")}
+                                    Check required
                                 </p>
                             </div>
                         </div>

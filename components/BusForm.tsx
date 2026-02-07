@@ -65,7 +65,8 @@ export function BusForm({ onSuccess }: BusFormProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create bus");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create bus");
       }
 
       toast.success("Bus created successfully");
@@ -73,7 +74,7 @@ export function BusForm({ onSuccess }: BusFormProps) {
       router.refresh();
       onSuccess?.();
     } catch (error) {
-      toast.error("Error creating bus");
+      toast.error(error instanceof Error ? error.message : "Error creating bus");
       console.error(error);
     }
   }
