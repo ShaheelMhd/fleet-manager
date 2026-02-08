@@ -34,7 +34,7 @@ export default function LandingHeader() {
           Routes
         </Link>
         <Link
-          href="/dashboard/buses"
+          href={isAuthenticated ? "/dashboard/buses" : "/signin"}
           className="text-white/80 hover:text-white text-xs font-light px-3 py-2 rounded-full hover:bg-white/10 transition-all duration-200"
         >
           Fleet
@@ -87,7 +87,7 @@ export default function LandingHeader() {
             Routes
           </Link>
           <Link
-            href="/dashboard/buses"
+            href={isAuthenticated ? "/dashboard/buses" : "/signin"}
             className="text-white text-2xl font-light hover:text-white/70 transition-colors"
             onClick={() => setIsMenuOpen(false)}
           >
