@@ -1,16 +1,25 @@
 "use client";
 
-import { AlertTriangle, Wrench, Clock } from "lucide-react";
+import { AlertTriangle, Wrench, Clock, Calendar, Pencil } from "lucide-react";
 import { ShinyCard } from "@/components/ui/ShinyCard";
 import { Button } from "../ui/button";
+import { useState } from "react";
+import { MaintenanceModal } from "./ScheduleServiceModal";
 
 export function MaintenanceAlerts({ alerts }: { alerts: any[] }) {
+    const [selectedBus, setSelectedBus] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleScheduleClick = (bus: any) => {
+        setSelectedBus(bus);
+        setIsModalOpen(true);
+    };
 
     return (
         <ShinyCard className="p-6 h-full flex flex-col">
             <div className="flex justify-between items-start mb-6">
                 <h3 className="text-lg font-bold text-foreground red tracking-wide uppercase">
-                    Maintenance & Idle
+                    Maintenance
                 </h3>
                 <button className="w-8 h-8 rounded-full bg-secondary text-foreground flex items-center justify-center hover:bg-secondary/80 transition-colors">
                     <Wrench className="w-4 h-4" />
@@ -26,12 +35,12 @@ export function MaintenanceAlerts({ alerts }: { alerts: any[] }) {
                     alerts.map((bus) => (
                         <div
                             key={bus.id}
-                            className="flex items-center gap-3 p-3 rounded-2xl bg-secondary/50 border border-border/50 hover:bg-secondary transition-colors"
+                            className="flex items-center gap-3 p-3 rounded-2xl bg-secondary/50 border border-border/50 hover:bg-secondary transition-colors group"
                         >
                             <div
                                 className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${bus.status === "maintenance"
                                     ? "bg-red-500/20 text-red-500"
-                                    : "bg-yellow-500/20 text-yellow-500"
+                                    : "bg-sidebar-primary/20 text-sidebar-primary"
                                     }`}
                             >
                                 {bus.status === "maintenance" ? (
@@ -45,24 +54,48 @@ export function MaintenanceAlerts({ alerts }: { alerts: any[] }) {
                                     <h4 className="font-bold text-sm text-foreground truncate">
                                         Bus #{bus.number}
                                     </h4>
-                                    <span className="text-[10px] text-muted-foreground font-medium bg-background px-1.5 py-0.5 rounded-full capitalize">
-                                        {bus.status}
-                                    </span>
                                 </div>
-                                <p className="text-xs text-muted-foreground truncate">
-                                    Check required
-                                </p>
+                                {bus.status === "scheduled" ? (
+                                    <div className="flex flex-col">
+                                        <p className="text-[11px] font-medium text-sidebar-primary">
+                                            {new Date(bus.next_maintenance_date).toLocaleDateString('en-GB')}
+                                        </p>
+                                        <p className="text-[10px] text-muted-foreground italic truncate">
+                                            {bus.maintenance_notes || `Odometer: ${bus.last_odometer_reading?.toLocaleString()} km`}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground italic truncate">
+                                        {bus.maintenance_notes || "Check required"}
+                                    </p>
+                                )}
                             </div>
+                            <button
+                                onClick={() => handleScheduleClick(bus)}
+                                className="w-8 h-8 rounded-full bg-background border border-border/50 text-foreground flex items-center justify-center hover:bg-secondary transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                                {bus.next_maintenance_date ? (
+                                    <Pencil className="w-3.5 h-3.5" />
+                                ) : (
+                                    <Calendar className="w-3.5 h-3.5" />
+                                )}
+                            </button>
                         </div>
                     ))
                 )}
             </div>
 
-            <div className="mt-auto pt-4">
-                <Button className="w-full py-2.5 rounded-xl bg-sidebar-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-opacity">
-                    Schedule Service
-                </Button>
-            </div>
+
+            <MaintenanceModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                bus={selectedBus}
+                onSuccess={() => {
+                    // In a real app, we'd trigger a re-fetch of dashboard data
+                    // For now, we'll rely on the toast and the user potentially refreshing
+                    window.location.reload();
+                }}
+            />
         </ShinyCard>
     );
 }

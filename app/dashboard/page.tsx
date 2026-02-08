@@ -4,9 +4,10 @@ import { FleetStatusChart } from "@/components/dashboard/FleetStatusChart";
 import { ActiveRoutes } from "@/components/dashboard/ActiveRoutes";
 import { AlertCard, FleetCapacityCard, RouteInsightsCard, FleetSummaryCard } from "@/components/dashboard/StatsCards";
 import { MaintenanceAlerts } from "@/components/dashboard/MaintenanceAlerts";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -14,18 +15,52 @@ export default function Dashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch("/api/dashboard/stats")
-      .then((res) => res.json())
-      .then((data) => {
-        setStats(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch dashboard stats", err);
-        setLoading(false);
-      });
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch("/api/dashboard/stats");
+      const data = await res.json();
+      setStats(data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats", err);
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+
+    // Subscribe to realtime changes
+    const busesSubscription = supabase
+      .channel('buses-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'buses' }, () => {
+        console.log('Buses changed, refreshing stats...');
+        fetchStats();
+      })
+      .subscribe();
+
+    const studentsSubscription = supabase
+      .channel('students-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, () => {
+        console.log('Students changed, refreshing stats...');
+        fetchStats();
+      })
+      .subscribe();
+
+    const routesSubscription = supabase
+      .channel('routes-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'routes' }, () => {
+        console.log('Routes changed, refreshing stats...');
+        fetchStats();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(busesSubscription);
+      supabase.removeChannel(studentsSubscription);
+      supabase.removeChannel(routesSubscription);
+    };
+  }, [fetchStats]);
 
   if (loading) {
     return (

@@ -8,7 +8,7 @@ import { logger } from "@/lib/logger";
 export async function GET() {
   const { data, error } = await supabase
     .from("routes")
-    .select("id, name, stops, created_at, buses(id, number)")
+    .select("id, name, stops, created_at, buses(id, number, capacity)")
     .order("created_at", { ascending: false });
 
   if (error) {

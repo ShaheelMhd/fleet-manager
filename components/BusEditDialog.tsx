@@ -20,6 +20,7 @@ import { Bus, Route } from "@/types";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -61,40 +62,46 @@ export function BusEditDialog({ bus, onSuccess }: BusEditFormProps) {
     const form = useForm<BusFormValues>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(busSchema) as any,
+        mode: "onTouched",
         defaultValues: {
-            number: bus.number,
+            number: bus.number || "",
             capacity: bus.capacity,
-            status: bus.status as "active" | "maintenance" | "idle",
-            route_id: bus.route_id,
-            maintenance_notes: bus.maintenance_notes,
+            status: (bus.status as any) || "active",
+            route_id: bus.route_id || "unassigned",
+            maintenance_notes: bus.maintenance_notes || "",
+            next_maintenance_date: bus.next_maintenance_date || null,
+            last_odometer_reading: bus.last_odometer_reading || null,
         },
     });
 
     async function onSubmit(values: BusFormValues) {
+        console.log("Submitting bus edit values:", values);
         try {
             const payload = {
                 ...values,
-                route_id: values.route_id === "unassigned" || values.route_id === "" ? null : values.route_id
+                route_id: values.route_id === "unassigned" || values.route_id === "" || !values.route_id ? null : values.route_id
             };
 
             const response = await fetch(`/api/buses/${bus.id}`, {
-                method: "PUT", // Assuming your API supports PUT for updating
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
+                console.error("Update error data:", errorData);
                 throw new Error(errorData.error || "Failed to update bus");
             }
 
+            console.log("Bus updated successfully, closing modal");
             toast.success("Bus updated successfully");
+            setOpen(false);
             router.refresh();
             onSuccess?.();
-            setOpen(false);
-        } catch (error) {
-            toast.error("Error updating bus");
-            console.error(error);
+        } catch (error: any) {
+            console.error("Submit error:", error);
+            toast.error(error.message || "Error updating bus");
         }
     }
 
@@ -108,9 +115,19 @@ export function BusEditDialog({ bus, onSuccess }: BusEditFormProps) {
             <DialogContent className="bg-card text-card-foreground border-border">
                 <DialogHeader>
                     <DialogTitle>Edit Bus {bus.number}</DialogTitle>
+                    <DialogDescription>
+                        Update the details for this bus.
+                    </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form 
+                        onSubmit={(e) => {
+                            console.log("Form submit triggered");
+                            console.log("Form errors:", form.formState.errors);
+                            form.handleSubmit(onSubmit, (err) => console.log("Validation errors:", err))(e);
+                        }} 
+                        className="space-y-4"
+                    >
                         <FormField
                             control={form.control}
                             name="number"
@@ -155,7 +172,14 @@ export function BusEditDialog({ bus, onSuccess }: BusEditFormProps) {
                                 <FormItem>
                                     <FormLabel>Capacity</FormLabel>
                                     <FormControl>
-                                        <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} />
+                                        <Input 
+                                            type="number" 
+                                            {...field} 
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                field.onChange(val === "" ? "" : parseInt(val));
+                                            }} 
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -174,6 +198,7 @@ export function BusEditDialog({ bus, onSuccess }: BusEditFormProps) {
                                         >
                                             <option value="active">Active</option>
                                             <option value="maintenance">Maintenance</option>
+                                            <option value="scheduled">Scheduled</option>
                                             <option value="idle">Idle</option>
                                         </select>
                                     </FormControl>

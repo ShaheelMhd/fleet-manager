@@ -8,6 +8,7 @@ export function FleetStatusChart({ data: fleetStatus }: { data: any }) {
     const data = [
         { name: "Active", value: fleetStatus?.active || 0, color: "#9d4edd" },
         { name: "Maintenance", value: fleetStatus?.maintenance || 0, color: "#27272a" },
+        { name: "Scheduled", value: fleetStatus?.scheduled || 0, color: "#4f46e5" },
         { name: "Idle", value: fleetStatus?.idle || 0, color: "#52525b" },
     ];
 
@@ -41,6 +42,9 @@ export function FleetStatusChart({ data: fleetStatus }: { data: any }) {
                                     border: '1px solid #27272a',
                                     color: '#fff'
                                 }}
+                                itemStyle={{ color: '#fff' }}
+                                labelStyle={{ color: '#fff', fontWeight: 'bold', marginBottom: '4px' }}
+                                formatter={(value: any) => [`${value} Buses`, 'Count']}
                             />
                             <Bar dataKey="value" radius={[8, 8, 8, 8]}>
                                 {data.map((entry, index) => (

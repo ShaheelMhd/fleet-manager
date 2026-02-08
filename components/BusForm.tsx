@@ -127,7 +127,14 @@ export function BusForm({ onSuccess }: BusFormProps) {
             <FormItem>
               <FormLabel>Capacity</FormLabel>
               <FormControl>
-                <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value))} />
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={e => {
+                    const val = e.target.value;
+                    field.onChange(val === "" ? "" : parseInt(val));
+                  }} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

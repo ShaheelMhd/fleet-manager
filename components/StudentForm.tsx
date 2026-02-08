@@ -40,7 +40,6 @@ export function StudentForm({ onSuccess }: StudentFormProps) {
   }, []);
 
   const form = useForm<StudentFormValues>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(studentSchema) as any,
     defaultValues: {
       name: "",

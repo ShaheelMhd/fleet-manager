@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import ShaderBackground from "@/components/landing/ShaderBackground"
-import { MapPin, ArrowLeft } from "lucide-react"
+import LandingHeader from "@/components/landing/LandingHeader"
+import { MapPin } from "lucide-react"
 
 export default function PublicRoutesPage() {
   const [routes, setRoutes] = useState<any[]>([])
@@ -29,18 +30,11 @@ export default function PublicRoutesPage() {
 
   return (
     <ShaderBackground>
-      <div className="absolute top-6 left-6 z-20">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-black font-bold text-lg hover:scale-105 transition-transform">
-            TKI
-          </div>
-          <span className="text-white/60 group-hover:text-white text-sm transition-colors flex items-center">
-            <ArrowLeft className="w-4 h-4 mr-1" /> Back
-          </span>
-        </Link>
+      <div className="relative z-20">
+        <LandingHeader />
       </div>
 
-      <div className="relative z-10 w-full min-h-screen flex flex-col items-center justify-center p-6 pt-24">
+      <div className="relative z-10 w-full flex-1 flex flex-col items-center justify-center p-6 pt-12 pb-24">
         <div className="w-full max-w-4xl">
           <div className="mb-12 text-center">
             <h1 className="text-4xl md:text-5xl font-light text-white mb-4">Active Routes</h1>

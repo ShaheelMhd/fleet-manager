@@ -1,8 +1,6 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 import LandingHeader from "@/components/landing/LandingHeader"
 import LandingHeroContent from "@/components/landing/LandingHeroContent"
 import LandingPulsingCircle from "@/components/landing/LandingPulsingCircle"
@@ -10,13 +8,9 @@ import ShaderBackground from "@/components/landing/ShaderBackground"
 
 export default function RootPage() {
   const { status } = useSession()
-  const router = useRouter()
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard")
-    }
-  }, [status, router])
+  // The landing page should be accessible even if authenticated.
+  // We removed the automatic redirect to /dashboard to allow viewing the landing page.
 
   if (status === "loading") {
     return (

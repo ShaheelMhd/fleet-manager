@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Bus, Route } from "@/types";
+import { Route } from "@/types";
 import {
     Dialog,
     DialogContent,
@@ -24,7 +24,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Pencil } from "lucide-react";
 
 interface RouteEditFormProps {

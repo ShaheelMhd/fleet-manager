@@ -5,6 +5,13 @@ import { useEffect, useState } from "react";
 import { SeatMap } from "./SeatMap";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 interface StudentAssignmentProps {
   student: Student;
@@ -30,7 +37,6 @@ export function StudentAssignment({ student, onUpdate, onCancel }: StudentAssign
           if (r) {
             setRoute(r);
             // Normalize buses for safe access
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const busesList = Array.isArray(r.buses) ? r.buses : (r.buses ? [r.buses] as any[] : []);
 
             // Default to first bus if none selected and buses exist
@@ -41,19 +47,20 @@ export function StudentAssignment({ student, onUpdate, onCancel }: StudentAssign
         });
 
       // Fetch occupied seats for this route
-      fetch(`/api/students?routeId=${student.route_id}`)
+      fetch(`/api/students?routeId=${student.route_id}&limit=1000`)
         .then(res => res.json())
-        .then((data: Student[]) => {
+        .then((resData: any) => {
+          const studentsList = Array.isArray(resData) ? resData : (resData.data || []);
           const busId = selectedBusId ?? student.bus_id;
-          const filteredStudents = data.filter(s => s.bus_id === busId);
+          const filteredStudents = studentsList.filter((s: Student) => s.bus_id === busId);
           
           const seats = filteredStudents
-            .map(s => s.seat_number)
-            .filter((s): s is number => s !== null);
+            .map((s: Student) => s.seat_number)
+            .filter((s: any): s is number => s !== null);
           setOccupiedSeats(seats);
 
           const seatMap: Record<number, string> = {};
-          filteredStudents.forEach(s => {
+          filteredStudents.forEach((s: Student) => {
             if (s.seat_number) seatMap[s.seat_number] = s.name;
           });
           setOccupiedSeatsMap(seatMap);
@@ -105,12 +112,12 @@ export function StudentAssignment({ student, onUpdate, onCancel }: StudentAssign
   if (!route) return <div className="p-8 text-center text-muted-foreground">Loading route details...</div>;
 
   // Normalize buses to ensure it's always an array
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const busesList = Array.isArray(route.buses) ? route.buses : (route.buses ? [route.buses] as any[] : []);
 
   if (busesList.length === 0) return <div className="p-8 text-center text-destructive">No fleet assigned to this route. Cannot assign seats.</div>;
 
   const currentBus = busesList.find((b: any) => b.id === selectedBusId) || busesList[0];
+  const busCapacity = Number(currentBus?.capacity || 0);
 
   return (
     <div className="space-y-4 border border-border p-6 rounded-3xl bg-card shadow-sm h-full flex flex-col items-center justify-center">
@@ -120,20 +127,26 @@ export function StudentAssignment({ student, onUpdate, onCancel }: StudentAssign
 
         {/* Bus Selector if multiple buses */}
         {busesList.length > 1 ? (
-          <div className="flex items-center gap-2 mt-2 bg-secondary/30 p-1 rounded-lg">
-            <span className="text-xs font-semibold px-2">Select Bus:</span>
-            <select
-              className="bg-transparent text-sm border-none focus:ring-0 cursor-pointer font-bold text-sidebar-primary"
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-xs font-semibold text-muted-foreground">Select Bus:</span>
+            <Select
               value={selectedBusId || ""}
-              onChange={(e) => {
-                setSelectedBusId(e.target.value);
-                setSelectedSeat(null); // Reset seat selection on bus change
+              onValueChange={(value) => {
+                setSelectedBusId(value);
+                setSelectedSeat(null);
               }}
             >
-              {busesList.map((b: any) => (
-                <option key={b.id} value={b.id}>{b.number} ({b.capacity} seats)</option>
-              ))}
-            </select>
+              <SelectTrigger className="w-[180px] h-8 bg-secondary/50 border-border text-xs font-bold text-sidebar-primary">
+                <SelectValue placeholder="Select a bus" />
+              </SelectTrigger>
+              <SelectContent>
+                {busesList.map((b: any) => (
+                  <SelectItem key={b.id} value={b.id} className="text-xs">
+                    {b.number} ({b.capacity} seats)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         ) : (
           <span className="text-sidebar-primary font-bold">Bus: {currentBus?.number}</span>
@@ -141,9 +154,9 @@ export function StudentAssignment({ student, onUpdate, onCancel }: StudentAssign
       </div>
 
       <div className="w-full flex justify-center py-4">
-        {currentBus && (
+        {currentBus && busCapacity > 0 && (
           <SeatMap
-            totalSeats={currentBus.capacity}
+            totalSeats={busCapacity}
             occupiedSeats={occupiedSeats.filter(s => s !== student.seat_number)}
             occupiedSeatsMap={occupiedSeatsMap}
             selectedSeat={selectedSeat}

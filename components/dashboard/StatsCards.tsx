@@ -13,7 +13,7 @@ export function AlertCard({ maintenanceCount }: { maintenanceCount: number }) {
                 <div>
                     <h4 className="font-bold text-sm text-foreground uppercase tracking-wide mb-1">Fleet Maintenance</h4>
                     <p className="text-xs text-muted-foreground leading-relaxed max-w-[280px]">
-                        There are <span className="text-sidebar-primary font-bold">{maintenanceCount}</span> buses currently in maintenance. Please review the schedule.
+                        There {maintenanceCount === 1 ? 'is' : 'are'} <span className="text-sidebar-primary font-bold">{maintenanceCount}</span> {maintenanceCount === 1 ? 'bus' : 'buses'} needing maintenance. Please review the schedule.
                     </p>
                 </div>
             </div>
@@ -140,7 +140,7 @@ export function FleetSummaryCard({ stats }: { stats: any }) {
                 <div className="space-y-4 flex-1">
                     <div className="bg-secondary/50 rounded-2xl p-4 border border-border/50">
                         <p className="text-sm text-muted-foreground leading-relaxed">
-                            Currently, <span className="text-foreground font-bold">{stats?.fleetStatus?.active}</span> buses are on the road serving <span className="text-sidebar-primary font-bold">{stats?.activeRoutes}</span> active routes.
+                            There {stats?.fleetStatus?.maintenance === 1 ? 'is' : 'are'} <span className="text-sidebar-primary font-bold">{stats?.fleetStatus?.maintenance || 0}</span> {stats?.fleetStatus?.maintenance === 1 ? 'bus' : 'buses'} needing maintenance. Please review the schedule.
                         </p>
                     </div>
                     

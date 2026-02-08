@@ -33,15 +33,23 @@ export async function GET() {
         active: buses.filter(b => b.status === "active").length,
         maintenance: buses.filter(b => b.status === "maintenance").length,
         idle: buses.filter(b => b.status === "idle").length,
+        scheduled: buses.filter(b => b.status === "scheduled").length,
       },
       totalStudents: students.length,
       activeRoutes: routes.length,
       totalCapacity,
       totalOccupied,
       occupancyRate: Math.round(occupancyRate),
-      maintenanceAlerts: buses
-        .filter(b => b.status === "maintenance")
-        .map(b => ({ id: b.id, number: b.number })),
+          maintenanceAlerts: buses
+        .filter(b => b.status === "maintenance" || b.status === "scheduled")
+        .map(b => ({
+          id: b.id,
+          number: b.number,
+          status: b.status,
+          maintenance_notes: b.maintenance_notes,
+          next_maintenance_date: b.next_maintenance_date,
+          last_odometer_reading: b.last_odometer_reading
+        })),
       routeInsights: routes.slice(0, 3).map(route => {
         const routeStudents = students.filter(s => s.route_id === route.id);
         const routeBuses = buses.filter(b => b.route_id === route.id);

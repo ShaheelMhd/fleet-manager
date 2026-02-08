@@ -52,7 +52,6 @@ export function StudentEditDialog({ student, onSuccess }: StudentEditDialogProps
     }, [open]);
 
     const form = useForm<StudentFormValues>({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(studentSchema) as any,
         defaultValues: {
             name: student.name,
@@ -149,7 +148,6 @@ export function StudentEditDialog({ student, onSuccess }: StudentEditDialogProps
                                         <select
                                             className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                             {...field}
-                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                             value={field.value || "unassigned"}
                                             onChange={(e) => field.onChange(e.target.value)}
                                         >

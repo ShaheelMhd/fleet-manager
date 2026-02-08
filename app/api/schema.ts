@@ -3,14 +3,22 @@ import { z } from "zod";
 export const busSchema = z.object({
   number: z.string().min(1, "Bus number is required"),
   capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
-  status: z.enum(["active", "maintenance", "idle"]).default("active"),
+  status: z.enum(["active", "maintenance", "idle", "scheduled"]).default("active"),
   route_id: z.string().optional().nullable(),
+  driver_id: z.string().optional().nullable(),
   maintenance_notes: z.string().optional(),
+  next_maintenance_date: z.string().optional().nullable(),
+  last_odometer_reading: z.coerce.number().optional().nullable(),
 });
 
 export const routeSchema = z.object({
   name: z.string().min(1, "Route name is required"),
   stops: z.array(z.string()).default([]),
+});
+
+export const driverSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  phone_number: z.string().optional().nullable(),
 });
 
 export const studentSchema = z.object({
